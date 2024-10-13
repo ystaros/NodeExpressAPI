@@ -1,15 +1,16 @@
 import { v4 as uuid } from "uuid";
+import log from '../logger/logger.js';
 
 let users = [];
 
 export const getUsers = (req, res) => {
-    console.info("GET request to endpoint '/users' received.");
+    log.info("GET request to endpoint '/users' received.");
 
     res.send(users.length ? users : "There are no users.");
 };
 
 export const postUsers = (req, res) => {
-    console.info("POST request to endpoint '/users' received.");
+    log.info("POST request to endpoint '/users' received.");
 
     // create user
     const user = req.body;
@@ -20,7 +21,7 @@ export const postUsers = (req, res) => {
 };
 
 export const getUserById = (req, res) =>{
-    console.info("GET request to endpoint '/users/id' received.");
+    log.info("GET request to endpoint '/users/id' received.");
 
     const userId = req.params.id;
     const foundUser = users.find((user) => user.id === userId);
@@ -28,8 +29,14 @@ export const getUserById = (req, res) =>{
     res.send(foundUser ? foundUser : "User not found.")
 };
 
+export const deleteUsers = (req, res) => {
+    users = [];
+
+    res.send("DB cleaned successfully");
+};
+
 export const deleteUserById = (req, res) => {
-    console.info("DELETE request to endpoint '/users/id' received.");
+    log.info("DELETE request to endpoint '/users/id' received.");
 
     const userId = req.params.id;
 
@@ -39,7 +46,7 @@ export const deleteUserById = (req, res) => {
 };
 
 export const patchUserById = (req, res) => {
-    console.info("PATCH request to endpoint '/users/id' received.");
+    log.info("PATCH request to endpoint '/users/id' received.");
 
     const userId = req.params.id;
     const newFirstName = req.body.firstName;
