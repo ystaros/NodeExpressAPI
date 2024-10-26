@@ -1,27 +1,26 @@
 import { v4 as uuid } from "uuid";
 import log from '../logger/logger.js';
 
-let users = [];
+let users = []; // our real DB
 
 export const getUsers = (req, res) => {
-    log.info("GET request to endpoint '/users' received.");
+    log.info("GET request to endpoint '/api/users/' received.");
 
     res.send(users.length ? users : "There are no users.");
 };
 
 export const postUsers = (req, res) => {
-    log.info("POST request to endpoint '/users' received.");
+    log.info("POST request to endpoint '/api/users/' received.");
 
     // create user
     const user = req.body;
-    const id = uuid();
-    users.push({...user, id: id});
+    users.push({...user, id: uuid()});
 
     res.send("User created successfully.");
 };
 
 export const getUserById = (req, res) =>{
-    log.info("GET request to endpoint '/users/id' received.");
+    log.info("GET request to endpoint '/api/users/id/' received.");
 
     const userId = req.params.id;
     const foundUser = users.find((user) => user.id === userId);
@@ -36,7 +35,7 @@ export const deleteUsers = (req, res) => {
 };
 
 export const deleteUserById = (req, res) => {
-    log.info("DELETE request to endpoint '/users/id' received.");
+    log.info("DELETE request to endpoint '/api/users/id/' received.");
 
     const userId = req.params.id;
 
@@ -46,7 +45,7 @@ export const deleteUserById = (req, res) => {
 };
 
 export const patchUserById = (req, res) => {
-    log.info("PATCH request to endpoint '/users/id' received.");
+    log.info("PATCH request to endpoint '/api/users/id/' received.");
 
     const userId = req.params.id;
     const newFirstName = req.body.firstName;
