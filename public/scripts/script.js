@@ -1,9 +1,13 @@
 const appName = document.getElementById('appName');
+const userIdInput = document.getElementById('userId');
 const firstNameInput = document.getElementById('firstName');
 const lastNameInput = document.getElementById('lastName');
 const ageInput = document.getElementById('age');
 const addButton = document.getElementById('addButton');
+const searchButton = document.getElementById('searchButton');
 const usersList = document.getElementById('usersList');
+const formAdd = document.getElementById('form-user');
+const formSearch = document.getElementById('form-search');
 
 let rowNumber = 1;
 
@@ -50,7 +54,7 @@ class UI {
         }
     }
 
-    static isFormValid(){
+    static isFormValid() {
         const isFirstNameValid = firstNameInput.value.trim().length > 0;
         const isLastNameValid = lastNameInput.value.trim().length > 0;
         const isAgeValid = ageInput.value.trim().length > 0;
@@ -58,7 +62,7 @@ class UI {
         return isFirstNameValid && isLastNameValid && isAgeValid;
     }
 
-    static activeAddButton() {
+    static activateAddButton() {
         const isValid = UI.isFormValid();
 
         console.log("isValid Form = ", isValid);
@@ -79,7 +83,7 @@ class UI {
         console.log("users.size = ", users.size);
         console.log("users.length = ", users.length);
 
-        if(users.size) {
+        if(typeof users !== 'string' && users.length) {
             users.forEach((user) => {
                 console.log('user = ', user);
                 UI.addUserToList(user);
@@ -94,28 +98,129 @@ class UI {
             const lastName = lastNameInput.value.trim();
             const age = ageInput.value;
 
+            //  API call POST to endpoint '/users'
+
             await UserService.postUsers(firstName, lastName, age);
+
+            //  API call GET to endpoint '/users'
 
             const users = await UserService.getUsers();
 
             console.log("users from GET call", users);
 
+            let userId = 0;
+            let newUser = {};
+
+            users.forEach((user) => {
+                if(user.firstName === firstName
+                    && user.lastName === lastName
+                    && user.age === age
+                ) {
+                    userId = user.id;
+                    console.log("userId from server = ", userId);
+
+                    newUser = new User(user.firstName, user.lastName, user.age, userId);
+                    console.log("Object of class User (OOP) = ", newUser);
+                }
+            })
+
+            return newUser;
         }
     }
 
     static addUserToList(user) {
         const row = document.createElement('tr');
         row.innerHTML = `
-        <th scope="row">${rowNumber}</th>
-        <td>${user.firstName}</td>
-        <td>${user.lastName}</td>
-        <td>${user.age}</td>
-        <td>${user.id}</td>
+            <th scope="row">${rowNumber}</th>
+            <td>${user.firstName}</td>
+            <td>${user.lastName}</td>
+            <td>${user.age}</td>
+            <td>${user.id}</td>
         `;
 
         usersList.appendChild(row);
         rowNumber ++;
     }
+
+    static getSearchCriteria() {
+        const userIdValue = userIdInput.value.trim().length > 0 ? userIdInput.value.trim() : '';
+        const firstNameValue = firstNameInput.value.trim().length > 0 ? firstNameInput.value.trim() : '';
+        const lastNameValue = lastNameInput.value.trim().length > 0 ? lastNameInput.value.trim() : '';
+        const ageValue = ageInput.value.trim().length > 0 ? ageInput.value.trim() : -1;
+
+        if(userIdValue.length || firstNameValue.length || lastNameValue.length || ageValue !== -1) {
+            return {
+                'userId': userIdValue,
+                'firstName': firstNameValue,
+                'lastName': lastNameValue,
+                'age': ageValue
+            };
+        }
+
+        return {};
+    }
+
+    static isSearchCriteriaValid(searchCriteria) {
+        return Object.keys(searchCriteria).length > 0;
+    }
+
+    static activateSearchButton() {
+        const searchCriteria = UI.getSearchCriteria();
+        console.log("searchCriteria", searchCriteria);
+
+        if(UI.isSearchCriteriaValid(searchCriteria)) {
+            searchButton.disabled = false;
+        }
+    }
+
+    static preventSearchUrl() {
+        if(window.location.pathname === '/search?') {
+            window.history.pushState({}, '', '/search');
+        }
+        
+    }
+
+    static async searchUsers() {
+        const searchCriteria = UI.getSearchCriteria();
+        if(UI.isSearchCriteriaValid(searchCriteria)) {
+            const users = await UserService.getUsers() || [];
+
+            console.log("Users from DB: ", users);
+
+            if(typeof users !== 'string' && users.length) {
+                usersList.innerHTML = '';
+                const searchResultRowNumber = 1;
+
+                users.forEach((user) => {
+                    if (
+                        user.id === searchCriteria.userId
+                        || user.firstName === searchCriteria.firstName
+                        || user.age === searchCriteria.age
+                    ) {
+                        const foundUser = new User(user.firstName, user.lastName, user.age, user.Id);
+
+                        console.log("Found User: ", foundUser);
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                          <th scope="row">${searchResultRowNumber}</th>
+                            <td>${user.firstName}</td>
+                            <td>${user.lastName}</td>
+                            <td>${user.age}</td>
+                            <td>${user.id}</td>
+                        `;
+
+                        usersList.appendChild(row);
+                        searchResultRowNumber ++;
+                    }
+                })
+            }
+
+            
+        }
+    }
+
+
 
 }
 
@@ -142,7 +247,7 @@ class UserService {
         return fetch("http://localhost:5000/api/users/")
             .then(response => {
                 if (response.status !== 200) {
-                    console.error(("[ERROR] Response status: ", response.status));
+                    console.error("[ERROR] Response status: ", response.status);
                     throw new Error("Failed to fetch users.");
                 }
                 // if response.code === 200,  we have 2 ways
@@ -172,9 +277,9 @@ class UserService {
     }
 
     static async postUsers(firstName, lastName, age) {
-        if(!firstName || !lastName || age === undefined) {
+        if (!firstName || !lastName || age === undefined) {
             console.error("[ERROR] Invalid parameters.")
-            throw new Error ("Invalid parameters.");
+            throw new Error("Invalid parameters.");
         }
 
         try {
@@ -208,7 +313,7 @@ class UserService {
                 console.error("[ERROR] Unexpected Content-Type: ", contentType);
                 throw new Error("Unexpected Content-Type.");
             }
-        } catch(error) {
+        } catch (error) {
             console.error("[ERROR] Fetch error: ", error);
             throw error;
         }
@@ -221,18 +326,45 @@ class UserService {
 // event to show App Name
 document.addEventListener('DOMContentLoaded', UI.displayAppName);
 
-// event to activate add button
-document.addEventListener('input', UI.activeAddButton);
-
 // event to display users
 document.addEventListener('DOMContentLoaded', UI.displayUsers);
 
-// event to add user to DB, get list of all users, 
-// find specific user,  create user as an oject, 
-// and display user in the table
+// we are on tab Add
+if(formAdd !== null) {
+    // event to activate Add button
+    formAdd.addEventListener('input', UI.activateAddButton);
 
-document.getElementById("form-user").addEventListener('submit', async (event) => {
-    event.preventDefault();
+     // event to activate Search button
 
-    await UI.createUser();
-})
+
+    // event to add user to DB, get list of all users, 
+    // find specific user,  create user as an oject, 
+    // and display user in the table
+
+    formAdd.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const user = await UI.createUser();
+        UI.addUserToList(user);
+
+        formAdd.reset();
+        addButton.disabled = true;
+    })
+
+}
+
+// we are on tab Search
+if(formSearch !== null) {
+    formSearch.addEventListener('input', UI.activateSearchButton);
+
+    formSearch.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        UI.preventSearchUrl();
+
+        await UI.searchUsers();
+
+        formSearch.reset();
+        searchButton.disabled = true;
+    })
+
+}
