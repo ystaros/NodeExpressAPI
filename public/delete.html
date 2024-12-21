@@ -25,12 +25,6 @@
             <li class="nav-item">
                <a class="nav-link" href="/search">Search</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/edit">Edit</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/delete">Delete</a>
-            </li>
         </ul>
     </div>
 
@@ -41,25 +35,25 @@
               <label for="userId">User ID</label>
               <input type="text" class="form-control"
                     id="userId"
-                    placeholder="Enter user ID...">
+                    placeholder="" readonly disabled>
             </div>
             <div class="form-group">
               <label for="firstName">First Name</label>
               <input type="text" class="form-control" 
                      id="firstName" 
-                     placeholder="Enter first Name...">
+                     placeholder="" readonly disabled>
             </div>
             <div class="form-group">
                 <label for="lastName">Last Name</label>
                 <input type="text" class="form-control" 
                        id="lastName"
-                       placeholder="Enter last Name...">
+                       placeholder="" readonly disabled>
               </div>
               <div class="form-group">
                 <label for="firstName">Age</label>
                 <input type="number" class="form-control" 
                        id="age" min="1" max="150"
-                       placeholder="Enter age...">
+                       placeholder="" readonly disabled>
               </div>
               <div class="d-flex justify-content-center">
                 <button type="submit" class="btn btn-primary mb-4 p-2 fs-5" id="deleteButton" disabled>Delete</button>
