@@ -1,3 +1,7 @@
+const LOCAL = "http://localhost:5000";
+const WEB = "https://nodeexpressapi-39yx.onrender.com";
+const URL = LOCAL;
+
 const appName = document.getElementById('appName');
 const userIdInput = document.getElementById('userId');
 const firstNameInput = document.getElementById('firstName');
@@ -196,9 +200,8 @@ class UI {
         const searchCriteria = UI.getSearchCriteria();
         console.log("searchCriteria", searchCriteria);
 
-        if(UI.isSearchCriteriaValid(searchCriteria)) {
-            searchButton.disabled = false;
-        }
+        searchButton.disabled = !UI.isSearchCriteriaValid(searchCriteria);
+
     }
 
     static preventSearchUrl() {
@@ -291,7 +294,7 @@ class UI {
         }
     }
 
-    static fillPlaceholder() {
+    static fillPlaceholders() {
         // Check if local storage data exists
         const id = localStorage.getItem('idValue');
         const firstName = localStorage.getItem('firstNameValue');
@@ -305,9 +308,15 @@ class UI {
         ageInput.placeholder = age ? age : defaultAgePlaceholder;
 
     }
-
-    static activateEditButton() {
-        editButton.disabled = false;
+    
+    static clearInputValues() {
+        firstNameInput.value = '';
+        lastNameInput.value = '';
+        ageInput.value = '';
+    }
+    
+    static activateEditButton(isValid) {
+        editButton.disabled = !isValid;
     }
 
     static activateDeleteButton() {
@@ -366,7 +375,8 @@ class UI {
 
 class AppService {
     static getAppName() {
-        return fetch("https://nodeexpressapi-39yx.onrender.com/api/")
+        // return fetch("https://nodeexpressapi-39yx.onrender.com/api/"")
+        return fetch(`${URL}/api/`)
             .then(response => {
                 if (response.status !== 200) {
                     console.error("[ERROR] Response status: ", response.status);
@@ -385,7 +395,7 @@ class AppService {
 class UserService {
     static async getUsers() {
         // return fetch("http://localhost:5000/api/users/")
-        return fetch("https://nodeexpressapi-39yx.onrender.com/api/users/")
+        return fetch(`${URL}/api/users/`)
         
             .then(response => {
                 if (response.status !== 200) {
@@ -426,7 +436,7 @@ class UserService {
 
         try {
             const response = await fetch(
-                "https://nodeexpressapi-39yx.onrender.com/api/users/",
+                `${URL}/api/users/`,
                 {
                     method: 'POST',
                     headers: {
@@ -483,7 +493,7 @@ class UserService {
 
         try {
             const response = await fetch(
-                `https://nodeexpressapi-39yx.onrender.com/api/users/${user.id}`,
+                `${URL}/api/users/${user.id}`,
                 {
                     method: 'PATCH',
                     headers: {
@@ -522,7 +532,7 @@ class UserService {
 
         try {
             const response = await fetch(
-                `https://nodeexpressapi-39yx.onrender.com/api/users/${id}`,
+                `${URL}/api/users/${id}`,
                 {
                     method: 'DELETE'
                 })
@@ -614,47 +624,60 @@ usersList.addEventListener('click', (event) => {
     }
 })
 
-// we are on tab Edit
+//we are on tab Edit
 if(formEdit !== null) {
     document.addEventListener('DOMContentLoaded', () => {
-        UI.fillPlaceholder();
+        UI.fillPlaceholders();
         if(userIdInput.placeholder !== defaultIdPlaceholder) {
             userIdInput.readOnly = true;
             userIdInput.disabled = true;
         }
     })
 
+    let isValidFirstName = false;
+    let isValidLastName = false;
+    let isValidAge = false;
+
     firstNameInput.addEventListener('input', () => {
         firstNameInput.style.background = "#E8F0FE";
-        UI.activateEditButton();
+        isValidFirstName = firstNameInput.value.trim().length > 0;
     })
 
     lastNameInput.addEventListener('input', () => {
-    lastNameInput.style.background = "#E8F0FE";
-    UI.activateEditButton();
+        lastNameInput.style.background = "#E8F0FE";
+        isValidLastName = lastNameInput.value.trim().length > 0;
     })
 
     ageInput.addEventListener('input', () => {
-    ageInput.style.background = "#E8F0FE";
-    UI.activateEditButton();
+        ageInput.style.background = "#E8F0FE";
+        isValidAge = ageInput.value.trim().length > 0;
     })
 
-    editButton.addEventListener('click', async () => {
+    formEdit.addEventListener('input', () => {
+        UI.activateEditButton(isValidFirstName || isValidLastName || isValidAge);
+    })
+
+    editButton.addEventListener('click', async (event) => {
+        event.preventDefault();
         await UI.editUser();
         UI.clearLocalStorage();
+        UI.clearInputValues();
+        UI.fillPlaceholders();
+        window.location.reload();
     })
-
 }
 
 // we are on tab Delete
 if(formDelete !== null) {
     document.addEventListener('DOMContentLoaded', () => {
-        UI.fillPlaceholder();
+        UI.fillPlaceholders();
         UI.activateDeleteButton();
     })
 
-    deleteButton.addEventListener('click', async () => {
-        await UI.deleteUser();
-        UI.clearLocalStorage();
+    deleteButton.addEventListener('click', async  (event) => {
+        event.preventDefault()
+        await UI.deleteUser()
+        UI.clearLocalStorage()
+        window.location.reload()
     })
 }
