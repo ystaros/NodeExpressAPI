@@ -1,6 +1,6 @@
 const LOCAL = "http://localhost:5000";
 const WEB = "https://nodeexpressapi-39yx.onrender.com";
-const URL = LOCAL;
+const URL = WEB;
 
 const appName = document.getElementById('appName');
 const userIdInput = document.getElementById('userId');
@@ -308,7 +308,7 @@ class UI {
         ageInput.placeholder = age ? age : defaultAgePlaceholder;
 
     }
-    
+
     static clearInputValues() {
         firstNameInput.value = '';
         lastNameInput.value = '';
